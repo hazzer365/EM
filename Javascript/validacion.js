@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function() {
     function clearAllErrors() {
         const errorMessages = document.querySelectorAll(".error-message");
         errorMessages.forEach((message) => message.remove());
-
         const errorInputs = document.querySelectorAll(".error-input");
         errorInputs.forEach((input) => input.classList.remove("error-input"));
     }
@@ -111,29 +110,34 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Evento de envío del formulario
     form.addEventListener("submit", function(event) {
-        event.preventDefault();
+        event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+        // Asegurarse de que el formulario no se envíe más de una vez
+        const btn = document.getElementById('enviarButton');
+        if (btn.disabled) return; // Si el botón está deshabilitado, no hacer nada
+
         if (validateInput()) {
-            // Si es válido, limpiar todos los errores y restablecer el formulario
-            alert("Formulario enviado correctamente");
-            form.reset();
-            setTimeout(clearAllErrors, 0);
+            // Deshabilitar el botón para evitar múltiples envíos
+            btn.disabled = true;
+            btn.textContent = 'Enviando...'; // Mostrar estado de envío en el botón
+
+            const serviceID = 'default_service'; // ID del servicio (por defecto en EmailJS)
+            const templateID = 'template_cmv6o4v'; // Cambia por el ID de tu plantilla EmailJS
+
+            // Usar EmailJS para enviar el formulario
+            emailjs.sendForm(serviceID, templateID, form)
+                .then(() => {
+                    btn.textContent = 'Enviar'; // Restaurar texto del botón
+                    btn.disabled = false;
+                    alert('Formulario enviado correctamente');
+                    form.reset(); // Limpiar campos automáticamente
+                    clearAllErrors(); // Limpiar errores
+                }, (error) => {
+                    btn.disabled = false;
+                    btn.textContent = 'Enviar';
+                    console.error('Error al enviar:', error);
+                    alert('Hubo un error al enviar el correo. Por favor, inténtalo de nuevo.');
+                });
         }
     });
-});
-
-// Detectar dirección del scroll
-let lastScrollY = window.scrollY; // Guarda la posición inicial del scroll
-
-window.addEventListener("scroll", () => {
-    const navbar = document.querySelector(".nav-bg");
-
-    if (window.scrollY > lastScrollY) {
-        // Si el usuario hace scroll hacia abajo, oculta la navbar
-        navbar.classList.add("hidden");
-    } else {
-        // Si el usuario hace scroll hacia arriba, muestra la navbar
-        navbar.classList.remove("hidden");
-    }
-
-    lastScrollY = window.scrollY; // Actualiza la posición del scroll
 });
